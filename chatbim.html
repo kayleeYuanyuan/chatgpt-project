@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read File</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        #uploadSection, #questionSection {
+            flex-basis: 48%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            height: 90vh;
+        }
+        #result {
+            color: green;
+            font-size: 16px;
+        }
+
+        #uploadSection {
+            margin-right: 20px;
+        }
+
+        #uploadForm, #questionForm {
+            margin-bottom: 20px;
+            padding-right:20px;
+        }
+
+            #uploadForm label, #questionForm label {
+                display: block;
+                margin-bottom: 10px;
+            }
+
+            #uploadForm input[type="file"], #questionForm input[type="text"] {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+        #uploadButton, #submitQuestionButton {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+            #uploadButton:hover, #submitQuestionButton:hover {
+                background-color: #45a049;
+            }
+
+        #content {
+            height: 60%; 
+            overflow-y: scroll; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+        }
+
+        #submitQuestionButton:disabled {
+            background-color: #ccc; 
+            color: #666; 
+            cursor: not-allowed; 
+        }
+        #uploadButton:disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="uploadSection">
+        <h2>Upload Files</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="file">Choose a file:</label>
+            <label for="file">If you do not upload a file, you will use the last uploaded file.</label>
+            <input type="file" name="file" id="file" accept=".csv, .json"/>
+            <br />
+            <input type="button" value="Upload" id="uploadButton" />
+        </form>
+        <div id="result"></div>
+        <br />
+        <label style="font-size: 20px; font-weight: bold;">Recently uploaded file: </label>
+        <br />
+        <br />
+        <div id="uploadedFiles">
+            <label id="upload"></label>
+        </div>
+        <p style="color:gray;">Upload Time: <span id="current-time" style="color:gray;"></span></p>
+    </div>
+    <div id="questionSection">
+        <h2>Ask a Question</h2>
+        <form id="questionForm">
+            <label for="question">Enter your question:</label>
+            <input type="text" id="question1" name="question">
+            <br>
+            <label for="question">Prompt:</label>
+            <label for="question">If you do not input a prompt suffix, you will use the last prompt, which is the placeholder content in the textbox.</label>
+            <input type="text" id="question2" name="question" placeholder="">
+            <br />
+            <input type="button" value="Submit Question" id="submitQuestionButton" onclick="submitQuestion()">
+        </form>
+        <div id="content"></div>
+    </div>
+
+  
+    <script>
+        function scrollToBottom() {
+            var content = document.getElementById("content");
+            content.scrollTop = content.scrollHeight;
+        }
+
+        var prompt = localStorage.getItem("prompt");
+        var inputElement = document.getElementById("question2");
+        if (prompt != null) {
+            inputElement.value = prompt;
+        } else {
+            inputElement.placeholder = "For example, give me the answer in JSON format.";
+        }
+        var uploadName = localStorage.getItem("fileName");
+        if (uploadName != null) {
+            var uploadedFilesDiv = document.getElementById("upload");
+            uploadedFilesDiv.textContent = uploadName;
+        }
+        var uploadTime = localStorage.getItem("uploadTime");
+        document.getElementById('current-time').textContent = uploadTime;
+
+        function submitQuestion() {
+            // Get question input value
+            var question1 = document.getElementById("question1").value;
+            var question2 = document.getElementById("question2").value;
+            if (question1 == "") {
+                alert("You must input your question first!");
+                return;
+            }
+            if (question2 == "") {
+                question2 = localStorage.getItem("prompt");
+                if (question2 == null) {
+                    alert("You must input your prompt suffix!");
+                    return;
+                }
+            }
+            else {
+                localStorage.setItem("prompt", question2);
+            }
+            var question = question1 + " " + question2;
+/*            var question = question_orginal.replace(/"/g, '\\"');*/
+            var displayDiv = document.getElementById("content");
+            var questionDiv = document.createElement("div");
+            questionDiv.textContent = "Question: " + question1;
+            questionDiv.style.color = '#4169E1';
+            questionDiv.fontSize = "20px";
+            displayDiv.appendChild(questionDiv);
+
+            var loadingDiv = document.createElement("div");
+            loadingDiv.textContent = "Loading...";
+            loadingDiv.style.color = '#4169E1';
+            loadingDiv.fontSize = "20px";
+            loadingDiv.style.fontWeight = "bold";
+            displayDiv.appendChild(loadingDiv);
+
+            document.getElementById("submitQuestionButton").disabled = true;
+
+            var fileID = localStorage.getItem("openAIfileID");
+            var assistant = localStorage.getItem("assistantID");
+            var thread = localStorage.getItem("threadID");
+
+            var url = 'http://myy-metabim.com.au/api/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
+      
+
+            document.getElementById("question1").value = "";
+
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    var answerArray = data.split('!!');
+                    displayDiv.removeChild(loadingDiv);
+                    var answerDiv1 = document.createElement("div");
+                    answerDiv1.textContent = "Original Reply: " + answerArray[0];
+                    displayDiv.appendChild(answerDiv1);
+                    var answerDiv2 = document.createElement("div");
+                    answerDiv2.textContent = "Extract Reply: " + answerArray[1];
+                    answerDiv2.style.color = "green";
+                    answerDiv2.style.fontWeight = "bold";
+                    displayDiv.appendChild(answerDiv2);
+                    document.getElementById("submitQuestionButton").disabled = false;
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    // handle error
+                    console.error('Error:', error);
+                });
+        }
+
+        $(document).ready(function () {
+            $('#uploadButton').click(function () {
+                var formData = new FormData();
+                if ($('#file')[0].files.length === 0) {
+                    alert('Please upload your file first.');
+                    return;
+                }
+                else {
+                    formData.append('file', $('#file')[0].files[0]);
+                    localStorage.setItem("file", $('#file')[0].files[0]);
+                    document.getElementById("uploadButton").disabled = true;
+                }
+                var fileInput = document.getElementById('file');
+                var file = fileInput.files[0];
+                var fileName = file.name;
+
+                $('#result').html('<div id="loading" style="color: blue;">Loading...</div>');
+                $.ajax({
+                    url: 'http://myy-metabim.com.au/api/OnRequestChatfileUpload.aspx?fileName=' + fileName,
+                    type: 'POST',
+                    data: formData, 
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        //get current time
+                        var now = new Date();
+                        var year = now.getFullYear();
+                        var month = ('0' + (now.getMonth() + 1)).slice(-2);
+                        var day = ('0' + now.getDate()).slice(-2);
+                        var hours = ('0' + now.getHours()).slice(-2);
+                        var minutes = ('0' + now.getMinutes()).slice(-2);
+                        var seconds = ('0' + now.getSeconds()).slice(-2);
+                        var currentDateTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+                        document.getElementById('current-time').textContent = currentDateTime;
+                        localStorage.setItem("uploadTime", currentDateTime);
+
+                        var responses = response.split(' ');
+                        if (response == "Upload Fail, no file! ") {
+                            $('#result').text(response);                      
+                        }
+                        else {
+                            $('#result').text("Upload successfully!");
+                            localStorage.setItem("fileName", fileName);
+                            localStorage.setItem("openAIfileID", responses[0]);
+                            localStorage.setItem("assistantID", responses[1]);
+                            localStorage.setItem("threadID", responses[2]);
+                            var uploadedFilesDiv = document.getElementById('upload');
+                            uploadedFilesDiv.textContent = fileName;
+                            uploadForm.reset();
+                        }
+                        document.getElementById("uploadButton").disabled = false;
+                    },
+                    error: function (xhr, status, error) {
+                        $('#result').text('Upload fail: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
