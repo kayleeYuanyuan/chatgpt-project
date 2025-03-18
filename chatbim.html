@@ -90,7 +90,7 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="file">Choose a file:</label>
             <label for="file">If you do not upload a file, you will use the last uploaded file.</label>
-            <input type="file" name="file" id="file" accept=".csv, .json"/>
+            <input type="file" name="file" id="file"/>
             <br />
             <input type="button" value="Upload" id="uploadButton" />
         </form>
@@ -181,8 +181,8 @@
             var assistant = localStorage.getItem("assistantID");
             var thread = localStorage.getItem("threadID");
 
-            var url = 'http://myy-metabim.com.au/api/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
-      
+            //var url = 'https://myy-metabim.com.au/api/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
+            var url = 'https://appdev.easycarbon.com.au//api/openAI/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
 
             document.getElementById("question1").value = "";
 
@@ -226,7 +226,7 @@
 
                 $('#result').html('<div id="loading" style="color: blue;">Loading...</div>');
                 $.ajax({
-                    url: 'http://myy-metabim.com.au/api/OnRequestChatfileUpload.aspx?fileName=' + fileName,
+                    url: 'https://appdev.easycarbon.com.au//api/openAI/OnRequestChatfileUpload.aspx?fileName=' + fileName,
                     type: 'POST',
                     data: formData, 
                     processData: false,
