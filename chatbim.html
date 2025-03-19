@@ -89,7 +89,7 @@
         <h2>Upload Files</h2>
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="file">Choose a file:</label>
-            <label for="file">If you do not upload a file, you will use the last uploaded file.</label>
+            <label for="file">If you do not upload a file, you will use the last uploaded file.</label>     
             <input type="file" name="file" id="file"/>
             <br />
             <input type="button" value="Upload" id="uploadButton" />
@@ -182,7 +182,7 @@
             var thread = localStorage.getItem("threadID");
 
             //var url = 'https://myy-metabim.com.au/api/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
-            var url = 'https://appdev.easycarbon.com.au//api/openAI/onrequestchatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
+            var url = 'https://appdev.easycarbon.com.au//api/openAI/OnRequestChatquestion.aspx?question=' + question + '&fileID=' + fileID + '&assistantID=' + assistant + '&threadID=' + thread;
 
             document.getElementById("question1").value = "";
 
